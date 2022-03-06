@@ -1,0 +1,16 @@
+This function takes as an input products URL, that user sends.
+Than parses website to find and save "sale" price of the good.
+This function checks if user inputs URL and returns if url is ok (TRUE) or not(FALSE)
+This function checks if user inputs sephora URL
+This function checks if user inputs sephora product URL
+This function finds the name of the good
+This function differs two types of web pages where product has alternatives and has none
+This function scrapes item cuts part of code where is information about user's type of product
+Check the basis of the discount
+find if the price discount is provided by card or by current sale
+Find low price of the specific good
+Find high price of the specific good
+Get a price as a list and transform into int
+This function checks the basis of the discount (card or sale)
+find if the price discount is provided by card or by current sale
+This function gets full price of the good without card

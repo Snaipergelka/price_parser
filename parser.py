@@ -1,0 +1,149 @@
+import re
+
+from bs4 import BeautifulSoup
+import requests
+from selenium import webdriver
+
+
+# This function takes as an input products URL, that user sends.
+# Than parses website to find and save "sale" price of the good.
+def get_product_html(website_url):
+    # scrape raw site
+    website = requests.get(website_url)
+    # scrape site
+    soup = BeautifulSoup(website.content, "html.parser")
+    return soup
+
+
+# This function checks if user inputs URL and returns if url is ok (TRUE) or not(FALSE)
+def check_url(website_url):
+    regex = re.compile(
+        r'^(?:http|ftp)s?://'  # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+        r'localhost|'  # localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+        r'(?::\d+)?'  # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+
+    return re.match(regex, website_url) is not None
+
+
+# This function checks if user inputs sephora URL
+def check_sephora_url(website_url):
+    return "sephora" in website_url
+
+
+# This function checks if user inputs sephora product URL
+def check_sephora_product_url(soup):
+    m_list = soup.find("div", {"class": "b-product-list__item"})
+    return m_list is None
+
+
+# This function finds the name of the good
+def find_name(soup):
+    name_of_good = soup.find("span", {"class": "b-crumbs__current"}).get_text()
+    return name_of_good
+
+
+# This function differs two types of web pages where product has alternatives and has none
+# NB for unique product without alternatives output will be 3
+def check_for_alternatives(soup):
+    m_list = soup.find("ul", {"class": "b-card-option__items"})
+    return len(m_list)
+
+
+# This function scrapes item cuts part of code where is information about user's type of product
+def cut_part_need(soup, website_url):
+    # get id of the good
+    product = "_prod"
+    prod_id = str(website_url[-6:] + product)
+    temp = soup.find(id=prod_id)
+    part_of_soup = temp
+    return part_of_soup
+
+
+# Check the basis of the discount
+def check_specific_price(part_of_soup):
+    # find if the price discount is provided by card or by current sale
+    check = part_of_soup.find("div",
+                              {"class": "b-card__price b-card__price--discount-card"})
+    return check is None
+
+
+# Find low price of the specific good
+def get_specific_low_price(part_of_soup):
+    # Get a price as a list and transform into int
+    raw_low_price = part_of_soup.findAll("div", {"class": "b-card__price-value"})[0].get_text().split()
+    low_price = str(raw_low_price[0]) + str(raw_low_price[1])
+    return int(low_price)
+
+
+# Find high price of the specific good
+def get_specific_high_price(part_of_soup):
+    # Get a price as a list and transform into int
+    raw_high_price = part_of_soup.findAll("div", {"class": "b-card__price-value"})[1].get_text().split()
+    high_price = str(raw_high_price[0]) + str(raw_high_price[1])
+    return int(high_price)
+
+
+# This function checks the basis of the discount (card or sale)
+def check_price(soup):
+    # find if the price discount is provided by card or by current sale
+    check = soup.find("div",
+                      {"class": "b-card__price b-card__price--discount-card"})
+    return check is not None
+
+
+# This function gets full price of the good without card
+def get_full_price(soup):
+    # find and save HighPrice
+    raw_full_price = soup.find(itemprop="highPrice")
+    full_price = int(raw_full_price['content'])
+
+    # return current high price of the good
+    return full_price
+
+
+# This function gets current price of the good with card
+def get_price_with_card(soup):
+    # find and save LowPrice
+    raw_price_with_card = soup.find(itemprop="lowPrice")
+    price_with_card = int(raw_price_with_card['content'])
+
+    # return current low price of the good
+    return price_with_card
+
+
+# This function gets price with discount based on sale
+def get_low_price(soup):
+    # find and save LowPrice
+    raw_low_price = soup.find(itemprop="lowPrice" or "price")
+    low_price = int(raw_low_price['content'])
+
+    # return current low price of the good
+    return low_price
+
+
+# This function gets price without discount based on sale
+def get_high_price(soup):
+    # find and save HighPrice
+    raw_high_price = soup.find(itemprop="highPrice")
+    high_price = int(raw_high_price['content'])
+
+    # return current high price of the good
+    return high_price
+
+
+# This function compares current low price of the good and users discount price
+# NB! Full price in terms of sephora sale system is a price without any card discounts
+def compare_price_discount(low_price, discount, full_price):
+    # count low users price
+    disc_price = (discount * 100) / full_price
+    return disc_price <= low_price
+
+
+def compare_prices(low_price, user_price):
+    return low_price <= user_price
+
+
+
