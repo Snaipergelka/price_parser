@@ -1,0 +1,7 @@
+celery[redis]
+fastapi[all]
+requests
+bs4
+flower
+SQLAlchemy
+psycopg2-binary

@@ -2,14 +2,15 @@ import re
 
 from bs4 import BeautifulSoup
 import requests
-from selenium import webdriver
 
 
 # This function takes as an input products URL, that user sends.
 # Than parses website to find and save "sale" price of the good.
 def get_product_html(website_url):
+    headers = {
+        'User-Agent': 'PostmanRuntime/7.28.4'}
     # scrape raw site
-    website = requests.get(website_url)
+    website = requests.get(website_url, headers=headers)
     # scrape site
     soup = BeautifulSoup(website.content, "html.parser")
     return soup
@@ -98,12 +99,21 @@ def check_price(soup):
 def get_full_price(soup):
     # find and save HighPrice
     raw_full_price = soup.find(itemprop="highPrice")
-    full_price = int(raw_full_price['content'])
+    if raw_full_price:
+        full_price = int(raw_full_price['content'])
+        # return current high price of the good
+        return full_price
+    else:
+        return None
 
-    # return current high price of the good
-    return full_price
 
-
+def get_price(soup):
+    price = soup.find("div",
+                      {"class": "b-card__price-value"})
+    if price.get_text():
+        return int(price.get_text().replace('\n', '').replace('c', '').replace(' ', ''))
+    else:
+        return None
 # This function gets current price of the good with card
 def get_price_with_card(soup):
     # find and save LowPrice
@@ -118,10 +128,13 @@ def get_price_with_card(soup):
 def get_low_price(soup):
     # find and save LowPrice
     raw_low_price = soup.find(itemprop="lowPrice" or "price")
-    low_price = int(raw_low_price['content'])
+    if raw_low_price:
+        low_price = int(raw_low_price['content'])
 
-    # return current low price of the good
-    return low_price
+        # return current low price of the good
+        return low_price
+    else:
+        return None
 
 
 # This function gets price without discount based on sale
@@ -146,4 +159,5 @@ def compare_prices(low_price, user_price):
     return low_price <= user_price
 
 
-
+if __name__ == "__main__":
+    print(get_price(get_product_html('https://sephora.ru/care/body/hands/sephora-collection-colorful-hand-prod74l7/')))
