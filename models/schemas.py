@@ -26,3 +26,21 @@ class ProductInfo(ProductsInfoCreate):
 
     class Config:
         orm_mode = True
+
+
+class UserCreate(BaseModel):
+    name: str
+    phone_number: str
+
+
+class UserInfo(UserCreate):
+    id: int
+
+
+class UserAuth(BaseModel):
+    phone_number: str
+
+
+class UsersAndProducts(BaseModel):
+    product_id: int
+    user_id: int
