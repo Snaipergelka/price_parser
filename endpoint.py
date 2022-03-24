@@ -72,5 +72,20 @@ async def create_user(
     return crud.create_user(db=db, user=user)
 
 
+@app.delete("/user/delete_product/")
+async def delete_product(
+        user: schemas.UserCreate,
+        product: schemas.ProductURLAndIDCreate,
+        db: Session = Depends(get_db)):
+    return crud.delete_product_for_user(db, user, product)
+
+
+@app.delete("/delete_user/")
+async def delete_user(
+        user: schemas.UserAuth,
+        db: Session = Depends(get_db)):
+    return crud.delete_user(db, user)
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

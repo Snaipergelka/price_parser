@@ -69,3 +69,34 @@ def create_product_and_user(db: Session, data: schemas.UsersAndProducts):
     db.commit()
     db.refresh(db_user_product)
     return db_user_product
+
+
+def delete_product_for_user(db: Session, user, product):
+    user = db.query(models.User).filter_by(phone_number=user.phone_number).first()
+    if not user:
+        return "Please register yourself!"
+    product = db.query(models.ProductsIDAndURL).filter_by(url=product.url).first()
+    if not product:
+        return "Product does not exist!"
+    prod_and_user = db.query(models.UserAndProductID).filter(models.UserAndProductID.user_id == user.id).filter(
+        models.UserAndProductID.product_id == product.id).all()
+    if prod_and_user:
+        db.query(models.UserAndProductID).filter(models.UserAndProductID.user_id == user.id).filter(
+            models.UserAndProductID.product_id == product.id).delete()
+        db.commit()
+        return "Success"
+    return "You have already unsubscribed the product!"
+
+
+def delete_user(db: Session, user):
+    user = db.query(models.User).filter_by(phone_number=user.phone_number).first()
+    if not user:
+        return "You have already successfully deleted your data."
+    prod_and_user = db.query(models.UserAndProductID).filter(models.UserAndProductID.user_id == user.id).all()
+    if prod_and_user:
+        db.query(models.UserAndProductID).filter(models.UserAndProductID.user_id == user.id).delete()
+        db.commit()
+        db.query(models.User).filter_by(phone_number=user.phone_number).delete()
+        db.commit()
+        return "Success"
+    return "You have already unsubscribed the product!"
