@@ -203,4 +203,5 @@ def check_choice_of_alternative(url):
 
 
 if __name__ == "__main__":
-    print(check_choice_of_alternative('https://sephora.ru/make-up/lips/pomade/clarins-joli-rouge-gubnaya-prod1yvc/#store_346243'))
+    print(check_choice_of_alternative(
+        'https://sephora.ru/make-up/lips/pomade/clarins-joli-rouge-gubnaya-prod1yvc/#store_346243'))
