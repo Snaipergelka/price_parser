@@ -1,188 +1,216 @@
 import logging
-from sqlalchemy.orm import Session
 from . import models, schemas
+from .database import SessionLocal
 
 logger = logging.getLogger()
 
 
-def create_product(db: Session, product: schemas.ProductURLAndIDCreate):
+class CRUD:
 
-    logger.info("Creating product ID and URL model.")
-    db_product = models.ProductsIDAndURL(**product.dict())
+    def __init__(self):
+        db = SessionLocal()
+        self.db = db
 
-    logger.info("Adding product ID an URL to database.")
-    db.add(db_product)
+    def create_product(self, product: schemas.ProductURLAndIDCreate):
 
-    logger.info("Committing database changes.")
-    db.commit()
+        logger.info("Creating product ID and URL model.")
+        db_product = models.ProductsIDAndURL(**product.dict())
 
-    logger.info("Refreshing product ID and URL model.")
-    db.refresh(db_product)
-    return db_product
+        logger.info("Adding product ID an URL to database.")
+        self.db.add(db_product)
 
+        # Committing database changes.
+        self.db.commit()
 
-def create_product_info(db: Session, product: schemas.ProductsInfoCreate, prod_id: int) -> object:
+        logger.info("Refreshing product ID and URL model.")
+        self.db.refresh(db_product)
 
-    logger.info("Creating product info model.")
-    db_product = models.ProductsInfo(**product.dict(), product_id=prod_id)
+        self.db.close()
+        return db_product
 
-    logger.info("Adding product info model.")
-    db.add(db_product)
+    def create_product_info(self, product: schemas.ProductsInfoCreate, prod_id: int) -> object:
 
-    logger.info("Committing database changes.")
-    db.commit()
+        logger.info("Creating product info model.")
+        db_product = models.ProductsInfo(**product.dict(), product_id=prod_id)
 
-    logger.info("Refreshing product info model.")
-    db.refresh(db_product)
-    return db_product
+        logger.info("Adding product info model.")
+        self.db.add(db_product)
 
+        # Committing database changes.
+        self.db.commit()
 
-def create_user(db: Session, user: schemas.UserCreate):
+        logger.info("Refreshing product info model.")
+        self.db.refresh(db_product)
 
-    logger.info("Checking if user is already created.")
-    data = db.query(models.User).filter_by(phone_number=user.phone_number).first()
-    if not data:
+        self.db.close()
+        return db_product
 
-        logger.info("Creating user model.")
-        db_user = models.User(**user.dict())
+    def create_user(self, user: schemas.UserCreate):
 
-        logger.info("Adding user model.")
-        db.add(db_user)
+        logger.info("Checking if user is already created.")
+        data = self.db.query(models.User).filter_by(phone_number=user.phone_number).first()
+        if not data:
 
-        logger.info("Committing database changes.")
-        db.commit()
+            logger.info("Creating user model.")
+            db_user = models.User(**user.dict())
 
-        logger.info("Refreshing user model.")
-        db.refresh(db_user)
-        return db_user
+            logger.info("Adding user model.")
+            self.db.add(db_user)
 
-    return data
+            # Committing database changes.
+            self.db.commit()
 
+            # Refreshing user model.
+            self.db.refresh(db_user)
 
-def create_product_and_user(db: Session, data: schemas.UsersAndProducts):
+            self.db.close()
+            return db_user
 
-    logger.info("Creating user subscription model.")
-    db_user_product = models.UserAndProductID(**data.dict())
-
-    logger.info("Adding user subscription model.")
-    db.add(db_user_product)
-
-    logger.info("Committing database changes.")
-    db.commit()
-
-    logger.info("Refreshing user subscription model.")
-    db.refresh(db_user_product)
-
-    return db_user_product
-
-
-def get_user(db: Session, user: schemas.UserAuth):
-
-    logger.info("Getting user by phone number.")
-    data = db.query(models.User).filter_by(phone_number=user.phone_number).first()
-    if data:
+        self.db.close()
         return data
 
+    def create_product_and_user(self, data: schemas.UsersAndProducts):
 
-def get_product_by_url(db: Session, url):
+        logger.info("Creating user subscription model.")
+        db_user_product = models.UserAndProductID(**data.dict())
 
-    logger.info("Getting product by url.")
-    data = db.query(models.ProductsIDAndURL).filter_by(url=url).first()
-    if data:
-        return data.id
+        logger.info("Adding user subscription model.")
+        self.db.add(db_user_product)
 
+        # Committing database changes.
+        self.db.commit()
 
-def get_all_products_for_user(number: str, db: Session):
+        logger.info("Refreshing user subscription model.")
+        self.db.refresh(db_user_product)
 
-    logger.info("Getting user by phone number.")
-    user = db.query(models.User).filter_by(phone_number=number).first()
+        self.db.close()
+        return db_user_product
 
-    logger.info("Getting products id by user id.")
-    products = db.query(models.UserAndProductID).filter(models.UserAndProductID.user_id == user.id).all()
-    products_info = []
+    def get_user(self, user: schemas.UserAuth):
 
-    logger.info("Getting products info.")
-    for product in products:
-        products_info.extend(db.query(models.ProductsInfo).filter(models.ProductsInfo.product_id == product.product_id).all())
+        logger.info("Getting user by phone number.")
+        data = self.db.query(models.User).filter_by(phone_number=user.phone_number).first()
 
-    return products_info
+        self.db.close()
+        if data:
+            return data
 
+    def get_product_by_url(self, url):
 
-def get_product_by_user_id(db: Session, user: schemas.UserInfo):
+        logger.info("Getting product by url.")
+        data = self.db.query(models.ProductsIDAndURL).filter_by(url=url).first()
 
-    logger.info("Getting product by user id.")
-    return db.query(models.UserAndProductID).filter(models.UserAndProductID.user_id == user.id).all()
+        self.db.close()
+        if data:
+            return data.id
 
+    def get_all_products_for_user_with_details(self, number: str):
 
-def unsubscribe_product(db: Session, user: schemas.UserCreate,
-                        product: schemas.ProductURLAndIDCreate):
+        logger.info(f"Getting user subscriptions by phone {number}.")
+        products = self.db.query(models.ProductsInfo).join(models.UserAndProductID).join(models.User, models.User.phone_number == number).all()
 
-    logger.info("Getting user by phone number.")
-    user = db.query(models.User).filter_by(phone_number=user.phone_number).first()
+        #logger.info("Getting products id by user id.")
+        #products = self.db.query(models.UserAndProductID).filter(models.UserAndProductID.user_id == user.id).all()
+        #products_info = []
 
-    logger.info("Checking if user is registered.")
-    if not user:
-        return "Please register yourself!"
+        #logger.info("Getting products info.")
+        #for product in user:
+            #products_info.extend(self.db.query(models.ProductsInfo).filter(models.ProductsInfo.product_id == product.product_id).all())
 
-    logger.info("Getting product by url.")
-    product = db.query(models.ProductsIDAndURL).filter_by(url=product.url).first()
+        self.db.close()
+        return products
 
-    logger.info("Checking if product exists.")
-    if not product:
-        return "Product does not exist!"
+    def get_all_products_for_user_without_details(self, number: str):
 
-    logger.info("Checking if user is subscribed to product by user and product ids.")
-    prod_and_user = db.query(models.UserAndProductID).filter(
-        models.UserAndProductID.user_id == user.id).filter(
-        models.UserAndProductID.product_id == product.id).all()
+        logger.info("Getting user by phone number.")
+        products = self.db.query(models.UserAndProductID).join(models.User, models.User.phone_number == number).all()
 
-    logger.info("Checking if there is subscription to product.")
-    if prod_and_user:
+        #logger.info("Getting products id by user id.")
+        #products = self.db.query(models.UserAndProductID).filter(models.UserAndProductID.user_id == user.id).all()
 
-        logger.info("Deleting subscription to product from database.")
-        db.query(models.UserAndProductID).filter(models.UserAndProductID.user_id == user.id).filter(
-            models.UserAndProductID.product_id == product.id).delete()
+        self.db.close()
+        return [product.product_id for product in products]
 
-        logger.info("Commit changes to database.")
-        db.commit()
+    def get_product_by_user_id(self, user: schemas.UserInfo):
 
+        logger.info("Getting product by user id.")
+        result = self.db.query(models.UserAndProductID).filter(models.UserAndProductID.user_id == user.id).all()
+
+        self.db.close()
+        return result
+
+    def unsubscribe_product(self, user_and_prod: schemas.UsersAndProducts):
+
+        #logger.info("Getting user by phone number.")
+        #user = self.db.query(models.User).filter_by(phone_number=user.phone_number).first()
+
+        #logger.info("Checking if user is registered.")
+        #if not user:
+            #return "Please register yourself!"
+
+        #logger.info("Getting product by url.")
+        #product = self.db.query(models.ProductsIDAndURL).filter_by(url=product.url).first()
+
+        #logger.info("Checking if product exists.")
+        #if not product:
+            #return "Product does not exist!"
+
+        #logger.info("Checking if user is subscribed to product by user and product ids.")
+        #prod_and_user = self.db.query(models.UserAndProductID).join(
+         #   models.User, models.User.phone_number == user.phone_number).join(
+          #  models.ProductsIDAndURL, models.ProductsIDAndURL.url == product.url).all()
+
+        #logger.info("Checking if there is subscription to product.")
+        #if prod_and_user:
+
+            #logger.info("Deleting subscription to product from database.")
+        self.db.query(models.UserAndProductID).filter(models.UserAndProductID.user_id == user_and_prod.user_id).filter(
+            models.UserAndProductID.product_id == user_and_prod.product_id).delete()
+
+        # Commit changes to database.
+        self.db.commit()
+
+        self.db.close()
         return "Success"
 
-    return "You have already unsubscribed the product!"
+        #self.db.close()
+        #return "You have already unsubscribed the product!"
 
+    def delete_user(self, user: schemas.UserAuth):
 
-def delete_user(db: Session, user: schemas.UserAuth):
+        logger.info("Getting user by phone number.")
+        user = self.db.query(models.User).filter_by(phone_number=user.phone_number).first()
 
-    logger.info("Getting user by phone number.")
-    user = db.query(models.User).filter_by(phone_number=user.phone_number).first()
+        logger.info("Checking if user is registered.")
+        if not user:
+            return "You have already successfully deleted your data."
 
-    logger.info("Checking if user is registered.")
-    if not user:
-        return "You have already successfully deleted your data."
+        #logger.info("Getting user's subscriptions ids from database.")
+        #prod_and_user = self.db.query(models.UserAndProductID).filter(
+            #models.UserAndProductID.user_id == user.id).all()
 
-    logger.info("Getting user's subscriptions ids from database.")
-    prod_and_user = db.query(models.UserAndProductID).filter(
-        models.UserAndProductID.user_id == user.id).all()
-
-    logger.info("Checking if there is user's subscriptions ids from database.")
-    if prod_and_user:
+        #logger.info("Checking if there is user's subscriptions ids from database.")
+        #if prod_and_user:
 
         logger.info("Deleting user's subscriptions ids from database.")
-        db.query(models.UserAndProductID).filter(models.UserAndProductID.user_id == user.id).delete()
-        db.commit()
+        self.db.query(models.UserAndProductID).filter(models.UserAndProductID.user_id == user.id).delete()
+        self.db.commit()
 
-    logger.info("Deleting user authentication data from database.")
-    db.query(models.User).filter_by(phone_number=user.phone_number).delete()
+        logger.info("Deleting user authentication data from database.")
+        self.db.query(models.User).filter_by(phone_number=user.phone_number).delete()
 
-    logger.info("Commit changes to database.")
-    db.commit()
+        # Commit changes to database.
+        self.db.commit()
 
-    return "Success"
+        self.db.close()
+        return "Success"
 
+    def check_user_subscription(self, user_id: int, product_id: int):
 
-def check_user_subscription(db: Session, user_id: int, product_id: int):
+        logger.info("Checking if there is any user's subscriptions.")
+        result = bool(self.db.query(models.UserAndProductID).filter(
+            models.UserAndProductID.user_id == user_id).filter(
+            models.UserAndProductID.product_id == product_id).all())
 
-    logger.info("Checking if there is any user's subscriptions.")
-    return bool(db.query(models.UserAndProductID).filter(
-        models.UserAndProductID.user_id == user_id).filter(
-        models.UserAndProductID.product_id == product_id).all())
+        self.db.close()
+        return result

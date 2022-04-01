@@ -41,7 +41,7 @@ services:
     command: uvicorn endpoint:app --host 0.0.0.0
     container_name: backend_app
     env_file: .env
-    image: sephora-parser/endpoint.py
+    image: sephora-parser/users.py
     depends_on:
       - postgres
       - celery
