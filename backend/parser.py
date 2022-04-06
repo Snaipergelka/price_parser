@@ -50,8 +50,8 @@ def find_name(soup):
 # This function differs two types of web pages where product has alternatives and has none
 # NB for unique product without alternatives output will be 3
 def check_for_alternatives(soup):
-    m_list = soup.find("ul", {"class": "b-card-option__items"})
-    return False if len(m_list) == 3 else True
+    m_list = soup.findAll("ul", {"class": "b-card-option__items"})
+    return False if len(m_list) == 1 else True
 
 
 # This function scrapes item cuts part of code where is information about user's type of product
@@ -108,8 +108,7 @@ def get_full_price(soup):
 
 
 def check_availability(soup):
-    return bool(soup.find("div",
-                          {"class": "b-card__not-available"}))
+    return bool(soup.find("div", {"class": "b-card__not-available"}))
 
 
 def get_price(soup):
@@ -169,6 +168,7 @@ def compare_prices(low_price, user_price):
 def get_prices_for_specified_good(soup, url):
     name = find_name(soup) + ' ' + str(url[-6:])
     part_of_soup = cut_part_need(soup, url)
+
     if check_availability(part_of_soup):
         full_price = get_specific_low_price(part_of_soup)
         price_with_card = full_price
