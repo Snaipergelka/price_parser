@@ -75,7 +75,7 @@ async def subscribe_to_product(user_and_product: schemas.CreateSubscription,
     elif user and not product_id:
 
         logger.info(f"Parsing all the information about the {user_and_product.url}.")
-        product_info = get_info_about_product(user_and_product.url)
+        product_info = get_info_about_product(user_and_product.url, product_id)
 
         # Creating products schema with information.
         product_info_in_schema = schemas.ProductsInfoCreate(

@@ -9,7 +9,7 @@ class CRUD:
 
     def __init__(self):
         db = SessionLocal()
-        self.db = db
+        self.db = SessionLocal()
 
     def create_product(self, product: str):
 
@@ -166,3 +166,19 @@ class CRUD:
 
         self.db.close()
         return result
+
+    def update_information_about_product(self, product, prod_id: int):
+        # Creating product info model.
+        #db_product = models.ProductsInfo(**product.dict(), product_id=prod_id)
+
+        logger.info(f"Updating {product} in database.")
+        self.db.query(models.ProductsInfo).where(models.ProductsInfo.product_id == prod_id).update(product)
+
+        # Committing database changes.
+        self.db.commit()
+
+        # Refreshing product info model.
+        #self.db.refresh()
+
+        self.db.close()
+        return product

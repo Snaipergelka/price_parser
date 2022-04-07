@@ -1,4 +1,8 @@
+import datetime
+
 from celery import Celery
+from models import schemas
+from routers.routers_config import connecting_to_db
 from backend.parser import (get_product_html,
                             find_name,
                             get_price,
@@ -9,9 +13,36 @@ from backend.parser import (get_product_html,
 
 app = Celery('get_information', broker='redis://localhost:6379', backend='redis://localhost:6379')
 
+delta = datetime.timedelta(seconds=3)
+
+app.conf.beat_schedule = {
+    'update-every-hour': {
+        'task': 'backend.celery_tasks.update_info_about_product',
+        'schedule': delta
+    },
+}
+
+app.conf.timezone = "Europe/Moscow"
+
 
 @app.task()
-def get_info_about_product(url):
+def get_info_about_product(url, product_id):
+    result = parse_info_about_product(url)
+    update_info_about_product(url, product_id)
+    return result
+
+
+@app.task()
+def update_info_about_product(url, product_id):
+    #print("done")
+    product_info = parse_info_about_product(url)
+    product_in_schema = {"full_price": product_info[1],
+                         "price_with_card": product_info[2],
+                         "price_on_sale": product_info[3]}
+    connecting_to_db().update_information_about_product(product_in_schema, product_id)
+
+
+def parse_info_about_product(url):
     soup = get_product_html(url)
     name = find_name(soup)
 
