@@ -75,12 +75,11 @@ async def subscribe_to_product(user_and_product: schemas.CreateSubscription,
     elif user and not product_id:
 
         logger.info(f"Parsing all the information about the {user_and_product.url}.")
-        product_info = get_info_about_product(user_and_product.url, product_id)
+        product_info = get_info_about_product.delay(user_and_product.url, product_id)
+        product_info = product_info.get()
 
         # Creating products schema with information.
-        product_info_in_schema = schemas.ProductsInfoCreate(
-                name=product_info[0], full_price=product_info[1],
-                price_with_card=product_info[2], price_on_sale=product_info[3])
+        product_info_in_schema = schemas.ProductsInfoCreate(**product_info)
 
         # Pushing product url to database.
         product = conn.create_product(product=user_and_product.url)
@@ -91,7 +90,7 @@ async def subscribe_to_product(user_and_product: schemas.CreateSubscription,
         # Pushing user subscription to product to database.
         conn.create_product_and_user(data=schemas.UsersAndProducts(product_id=product.id, user_id=user.id))
         logger.info(f"Added all the information about the {product}, {user} subscription to db.")
-        return product_info_in_schema
+        return "Succeeded with new one"
 
 
 @router.post("/unsubscribe_product")

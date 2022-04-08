@@ -50,8 +50,8 @@ def find_name(soup):
 # This function differs two types of web pages where product has alternatives and has none
 # NB for unique product without alternatives output will be 3
 def check_for_alternatives(soup):
-    m_list = soup.findAll("ul", {"class": "b-card-option__items"})
-    return False if len(m_list) == 1 else True
+    m_list = soup.findAll("span", {"class": "b-card-option__image"})
+    return len(m_list) > 1
 
 
 # This function scrapes item cuts part of code where is information about user's type of product
