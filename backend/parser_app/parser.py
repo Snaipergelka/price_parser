@@ -1,8 +1,13 @@
-import re
+import logging
 from idlelib.configdialog import is_int
-
 from bs4 import BeautifulSoup
 import requests
+from requests.exceptions import (RequestException, InvalidURL, InvalidSchema, MissingSchema,
+                                 URLRequired, HTTPError, Timeout, ConnectTimeout,
+                                 ReadTimeout, InvalidHeader, ContentDecodingError,
+                                 StreamConsumedError)
+
+logger = logging.getLogger()
 
 
 # This function takes as an input products URL, that user sends.
@@ -10,24 +15,27 @@ import requests
 def get_product_html(website_url):
     headers = {
         'User-Agent': 'PostmanRuntime/7.28.4'}
-    # scrape raw site
-    website = requests.get(website_url, headers=headers)
+    try:
+        # scrape raw site
+        website = requests.get(website_url, headers=headers)
+
+    except (RequestException, InvalidURL, InvalidSchema, MissingSchema,
+            URLRequired, HTTPError, Timeout, ConnectTimeout,
+            ReadTimeout, InvalidHeader, ContentDecodingError,
+            StreamConsumedError) as e:
+        logger.exception(f"While getting page the following exception occurred: {e}")
+        raise {"error": {"code": 500,
+                         "name": "Internal Server Error"}}
+
     # scrape site
     soup = BeautifulSoup(website.content, "html.parser")
+
+    if soup is None:
+        logger.exception(f"Website {website_url} is empty.")
+        raise {"error": {"code": 500,
+                         "name": "Internal Server Error"}}
+
     return soup
-
-
-# This function checks if user inputs URL and returns if url is ok (TRUE) or not(FALSE)
-def check_url(website_url):
-    regex = re.compile(
-        r'^(?:http|ftp)s?://'  # http:// or https://
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
-        r'localhost|'  # localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
-        r'(?::\d+)?'  # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
-
-    return re.match(regex, website_url) is not None
 
 
 # This function checks if user inputs sephora URL
@@ -48,13 +56,12 @@ def find_name(soup):
 
 
 # This function differs two types of web pages where product has alternatives and has none
-# NB for unique product without alternatives output will be 3
 def check_for_alternatives(soup):
     m_list = soup.findAll("span", {"class": "b-card-option__image"})
     return len(m_list) > 1
 
 
-# This function scrapes item cuts part of code where is information about user's type of product
+# This function cuts part of page html where is information about user's type of product
 def cut_part_need(soup, website_url):
     # get id of the good
     product = "_prod"
@@ -107,10 +114,12 @@ def get_full_price(soup):
         return None
 
 
+# This function checks if product is available
 def check_availability(soup):
     return bool(soup.find("div", {"class": "b-card__not-available"}))
 
 
+# Parses price of the non-available good
 def get_price(soup):
     price = soup.find("div",
                       {"class": "b-card__price-value"})
@@ -161,10 +170,12 @@ def compare_price_discount(low_price, discount, full_price):
     return disc_price <= low_price
 
 
+# This function compares price of the good and price that consumer wants
 def compare_prices(low_price, user_price):
     return low_price <= user_price
 
 
+# Parses prices for good with types
 def get_prices_for_specified_good(soup, url):
     name = find_name(soup) + ' ' + str(url[-6:])
     part_of_soup = cut_part_need(soup, url)
@@ -181,6 +192,7 @@ def get_prices_for_specified_good(soup, url):
         return [name, full_price, price_with_card, price_on_sale]
 
 
+# Parses prices of the good with no types
 def get_prices_for_non_specified_good(soup):
     if check_price(soup):
         full_price = get_full_price(soup)
@@ -193,6 +205,7 @@ def get_prices_for_non_specified_good(soup):
     return full_price, price_with_card, price_on_sale
 
 
+# Checks if consumer has chosen type of the product
 def check_choice_of_alternative(url):
     soup = get_product_html(url)
     if check_for_alternatives(soup) and is_int(url[-6:]):

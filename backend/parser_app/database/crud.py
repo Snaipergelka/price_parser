@@ -1,6 +1,6 @@
 import logging
 from . import models, schemas
-from .database import SessionLocal
+from .database_config import SessionLocal
 
 logger = logging.getLogger()
 
@@ -169,7 +169,7 @@ class CRUD:
 
     def update_information_about_product(self, product, prod_id: int):
         # Creating product info model.
-        #db_product = models.ProductsInfo(**product.dict(), product_id=prod_id)
+        #db_product = database.ProductsInfo(**product.dict(), product_id=prod_id)
 
         logger.info(f"Updating {product} in database.")
         self.db.query(models.ProductsInfo).where(models.ProductsInfo.product_id == prod_id).update(product)

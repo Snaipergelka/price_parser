@@ -1,17 +1,18 @@
 import time
 from celery import Celery
-from routers.routers_config import connecting_to_db
-from backend.parser import (get_product_html,
-                            find_name,
-                            get_price,
-                            check_availability,
-                            check_for_alternatives,
-                            get_prices_for_specified_good,
-                            get_prices_for_non_specified_good)
+from api_routers.routers_config import connecting_to_db
+from backend.parser_app.parser import (get_product_html,
+                                       find_name,
+                                       get_price,
+                                       check_availability,
+                                       check_for_alternatives,
+                                       get_prices_for_specified_good,
+                                       get_prices_for_non_specified_good)
 
 app = Celery('get_information', broker='redis://localhost:6379', backend='redis://localhost:6379')
 
 
+# Parses information about product for the first time and starts updation.
 @app.task()
 def get_info_about_product(url, product_id):
     info = parse_info_about_product(url)
@@ -25,6 +26,7 @@ def get_info_about_product(url, product_id):
     return result
 
 
+# Updates information about product in db one time per hour.
 @app.task()
 def update_info_about_product(url, product_id):
     time.sleep(60)
@@ -36,6 +38,7 @@ def update_info_about_product(url, product_id):
     update_info_about_product.delay(url, product_id)
 
 
+# Parses all information about product.
 def parse_info_about_product(url):
     soup = get_product_html(url)
 
