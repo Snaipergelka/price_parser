@@ -46,7 +46,7 @@ def check_sephora_url(website_url):
 # This function checks if user inputs sephora product URL
 def check_sephora_product_url(soup):
     m_list = soup.find("div", {"class": "b-product-list__item"})
-    return m_list is None
+    return m_list is not None
 
 
 # This function finds the name of the good

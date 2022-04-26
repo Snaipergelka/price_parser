@@ -1,7 +1,7 @@
 import logging
 from .routers_config import connecting_to_db
 import backend.parser_app.parser
-from backend.parser_app.celery_tasks import get_info_about_product
+from ..celery_tasks import get_info_about_product
 from fastapi import Depends, APIRouter
 from backend.parser_app.database import schemas, crud
 
@@ -49,7 +49,8 @@ async def subscribe_to_product(user_and_product: schemas.CreateSubscription,
 
     # Checking if url is sephora-url
     if not backend.parser_app.parser.check_sephora_url(user_and_product.url) or \
-            backend.parser_app.parser.check_sephora_product_url(user_and_product.url):
+            backend.parser_app.parser.check_sephora_product_url(
+                backend.parser_app.parser.get_product_html(user_and_product.url)):
         return {"message": "Please provide url of product from sephora shop!"}
 
     # Checking if type of product is chosen if needed.
@@ -80,7 +81,7 @@ async def subscribe_to_product(user_and_product: schemas.CreateSubscription,
     elif user and not product_id:
 
         logger.info(f"Parsing all the information about the {user_and_product.url}.")
-        product_info = get_info_about_product.delay(user_and_product.url, product_id)
+        product_info = get_info_about_product.delay(url=user_and_product.url)
         product_info = product_info.get()
 
         # Creating products schema with information.

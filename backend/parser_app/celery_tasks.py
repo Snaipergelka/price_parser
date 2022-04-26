@@ -1,6 +1,6 @@
 import time
 from celery import Celery
-from api_routers.routers_config import connecting_to_db
+from .api_routers.routers_config import connecting_to_db
 from backend.parser_app.parser import (get_product_html,
                                        find_name,
                                        get_price,
@@ -12,9 +12,9 @@ from backend.parser_app.parser import (get_product_html,
 app = Celery('get_information', broker='redis://localhost:6379', backend='redis://localhost:6379')
 
 
-# Parses information about product for the first time and starts updation.
+# Parses information about product for the first time and starts update.
 @app.task()
-def get_info_about_product(url, product_id):
+def get_info_about_product(url):
     info = parse_info_about_product(url)
     result = {
         "name": info[0],
@@ -22,20 +22,20 @@ def get_info_about_product(url, product_id):
         "price_with_card": info[2],
         "price_on_sale": info[3]
     }
-    update_info_about_product.delay(url, product_id)
+    update_info_about_product.delay(url)
     return result
 
 
 # Updates information about product in db one time per hour.
 @app.task()
-def update_info_about_product(url, product_id):
+def update_info_about_product(url):
     time.sleep(60)
     product_info = parse_info_about_product(url)
     product_in_schema = {"full_price": product_info[1],
                          "price_with_card": product_info[2],
                          "price_on_sale": product_info[3]}
-    connecting_to_db().update_information_about_product(product_in_schema, product_id)
-    update_info_about_product.delay(url, product_id)
+    connecting_to_db().update_information_about_product(product_in_schema, product_info[0])
+    update_info_about_product.delay(url)
 
 
 # Parses all information about product.

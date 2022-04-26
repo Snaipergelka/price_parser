@@ -167,18 +167,14 @@ class CRUD:
         self.db.close()
         return result
 
-    def update_information_about_product(self, product, prod_id: int):
+    def update_information_about_product(self, product, name):
         # Creating product info model.
-        #db_product = database.ProductsInfo(**product.dict(), product_id=prod_id)
 
         logger.info(f"Updating {product} in database.")
-        self.db.query(models.ProductsInfo).where(models.ProductsInfo.product_id == prod_id).update(product)
+        self.db.query(models.ProductsInfo).where(models.ProductsInfo.name == name).update(product)
 
         # Committing database changes.
         self.db.commit()
-
-        # Refreshing product info model.
-        #self.db.refresh()
 
         self.db.close()
         return product
