@@ -175,10 +175,15 @@ def compare_prices(low_price, user_price):
     return low_price <= user_price
 
 
+# This function gets name of the type of the product
+def get_type_name_of_the_good(part_of_soup):
+    return part_of_soup.find("span", {"class": "b-card-option__title"}).get_text()
+
+
 # Parses prices for good with types
 def get_prices_for_specified_good(soup, url):
-    name = find_name(soup) + ' ' + str(url[-6:])
     part_of_soup = cut_part_need(soup, url)
+    name = find_name(soup) + ' ' + get_type_name_of_the_good(soup)
 
     if check_availability(part_of_soup):
         full_price = get_specific_low_price(part_of_soup)
