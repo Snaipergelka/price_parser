@@ -1,3 +1,4 @@
+import os
 import time
 from celery import Celery
 from .api_routers.routers_config import connecting_to_db
@@ -9,7 +10,9 @@ from backend.parser_app.parser import (get_product_html,
                                        get_prices_for_specified_good,
                                        get_prices_for_non_specified_good)
 
-app = Celery('get_information', broker='redis://localhost:6379', backend='redis://localhost:6379')
+app = Celery('get_information',
+             broker=os.environ.get('BROKER_URL'),
+             backend=os.environ.get('BACKEND_URL'))
 
 
 # Parses information about product for the first time and starts update.

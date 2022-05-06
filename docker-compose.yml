@@ -5,12 +5,12 @@ services:
     container_name: postgres
     image: postgres
     restart: always
+    env_file:
+      - .env
     volumes:
       - ./data/db:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    env_file:
-      - .env
 
   redis:
     image: redis
@@ -38,7 +38,8 @@ services:
     build: .
     command: uvicorn backend.parser_app.endpoint:app --host 0.0.0.0
     container_name: backend_app
-    env_file: .env
+    env_file:
+      - .env
     depends_on:
       - postgres
       - celery
