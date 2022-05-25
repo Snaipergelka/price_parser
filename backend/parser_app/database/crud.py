@@ -109,7 +109,8 @@ class CRUD:
         logger.info(f"Getting user subscriptions by phone {number}.")
         products = self.db.query(models.ProductsInfo).join(
             models.UserAndProductID).join(
-            models.User, models.User.phone_number == number).all()
+            models.User).filter(
+            models.User.phone_number == number).all()
         self.db.close()
         return products
 
@@ -117,7 +118,7 @@ class CRUD:
 
         logger.info(f"Getting user by {number}.")
         products = self.db.query(models.UserAndProductID).join(
-            models.User, models.User.phone_number == number).all()
+            models.User).filter(models.User.phone_number == number).all()
         self.db.close()
         return [product.product_id for product in products]
 
