@@ -1,6 +1,6 @@
 import uvicorn
 from fastapi import FastAPI
-from routers import users, subscriptions
+from backend.parser_app.api_routers import users, subscriptions
 import logging
 
 

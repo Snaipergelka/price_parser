@@ -1,6 +1,6 @@
 import logging
 from fastapi import Depends, APIRouter
-from models import schemas, crud
+from backend.parser_app.database import schemas, crud
 from .routers_config import connecting_to_db
 
 logger = logging.getLogger()

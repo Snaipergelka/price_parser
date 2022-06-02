@@ -8,6 +8,6 @@
                             I000075108
     <meta itemprop="highPrice" content="8200">
     <meta itemprop="lowPrice" content="1200">
-    <ul class="b-card-option__items">1</ul>
+    <span class="b-card-option__image"><img src="https://static.sephora.ru/files/images/tag/part_19/391675/pre/100_100sb.jpg" alt=""></span>
 </body>
 </html>

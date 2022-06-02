@@ -3,15 +3,12 @@
 <body>
     <span class="b-crumbs__current">MAKE UP FOR EVER HD SKIN UNDETECTABLE STAY-TRUE FOUNDATION Тональный крем</span>
        <span class="b-rouble">c</span></div></div></div></div> <img src="https://static.sephora.ru/files/images/tag/part_19/397288/pre/100_100sb.jpg" alt="" title="" data-image-big="https://static.sephora.ru/files/images/tag/part_19/397288/pre/500_500sb.jpg" data-image="https://static.sephora.ru/files/images/tag/part_19/397288/pre/500_500sb.jpg" data-image-host="https://sephora.ru" class="_js-offer-image"> <div class="item-flags"><div class="b-card__label b-good-for-badge" style="">Good For</div></div></div> <a href="#store_397288" class="b-card-option__link" title="1Y04 (Y215)" tabindex="0"><span class="b-card-option__image"><img src="https://static.sephora.ru/files/images/tag/part_19/397288/pre/100_100sb.jpg" alt=""></span> <span class="b-card-option__title">1Y04 (Y215)</span></a></li><li id="397291_prod" data-wishlist="0" class="b-card-option__item _js_b-card-option__item is-disabled is-active"><div class="product-item-hidden-data" style="display: none;"><div class="item-articul-eur">№
-            <div class="item-action"></div> <div class="item-price"><div class="b-card__price-row"><div class="b-card__price">
+            <div class="item-action"></div> <div class="item-price"><div class="b-card__price-row"><div class="b-card__price"><div class="b-card__price-value">2 500 <div class="b-card__price-value">4 300</div>
                                                     <span class="b-rouble">c</span></div></div></div></div> <img src="https://static.sephora.ru/files/images/tag/part_19/397291/pre/100_100sb.jpg" alt="" title="" data-image-big="https://static.sephora.ru/files/images/tag/part_19/397291/pre/500_500sb.jpg" data-image="https://static.sephora.ru/files/images/tag/part_19/397291/pre/500_500sb.jpg" data-image-host="https://sephora.ru" class="_js-offer-image"> <div class="item-flags"><div class="b-card__label b-good-for-badge" style="">Good For</div></div></div> <a href="#store_397291" class="b-card-option__link" title="1N06 (Y218)" tabindex="0"><span class="b-card-option__image"><img src="https://static.sephora.ru/files/images/tag/part_19/397291/pre/100_100sb.jpg" alt=""></span> <span class="b-card-option__title">1N06 (Y218)</span></a></li><li id="397276_prod" data-wishlist="0" class="b-card-option__item _js_b-card-option__item is-disabled"><div class="product-item-hidden-data" style="display: none;"><div class="item-articul-eur">№
                             I000075108
-    <div class="item-action"><div class="b-card__not-available">
-                                    Нет в наличии
-                                </div></div>
-    <div class="b-card__price-value">2 500</div>
-    <ul class="b-card-option__items">1</ul>
-    <ul class="b-card-option__items">2</ul>
-    <ul class="b-card-option__items">3</ul>
+    <div class="b-card__price b-card__price--discount-card"></div>
+    <meta itemprop="highPrice" content="8200">
+    <meta itemprop="lowPrice" content="1200">
+    <span class="b-card-option__image"><img src="https://static.sephora.ru/files/images/tag/part_19/391675/pre/100_100sb.jpg" alt=""></span>
 </body>
 </html>

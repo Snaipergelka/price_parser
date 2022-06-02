@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from bs4 import BeautifulSoup
 
-from backend.celery_tasks import get_info_about_product
+from backend.parser_app.celery_tasks import get_info_about_product
 
 
 class TestParser(TestCase):

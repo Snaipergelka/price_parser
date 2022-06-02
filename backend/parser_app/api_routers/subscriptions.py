@@ -1,9 +1,9 @@
 import logging
 from .routers_config import connecting_to_db
-import backend.parser
-from backend.celery_tasks import get_info_about_product
+import backend.parser_app.parser
+from ..celery_tasks import get_info_about_product
 from fastapi import Depends, APIRouter
-from models import schemas, crud
+from backend.parser_app.database import schemas, crud
 
 router = APIRouter(
     prefix="/subscription",
@@ -38,7 +38,7 @@ def show_all_subscribed_products_without_details(user: schemas.UserAuth,
         return products
 
     else:
-        return "You have no products!"
+        return {"message": "You have no products!"}
 
 
 @router.post("/subscribe_to_product")
@@ -47,16 +47,22 @@ async def subscribe_to_product(user_and_product: schemas.CreateSubscription,
 
     logger.info(f"Accepted {user_and_product.phone_number} to subscribe to {user_and_product.url}.")
 
+    # Checking if url is sephora-url
+    if not backend.parser_app.parser.check_sephora_url(user_and_product.url) or \
+            backend.parser_app.parser.check_sephora_product_url(
+                backend.parser_app.parser.get_product_html(user_and_product.url)):
+        return {"message": "Please provide url of product from sephora shop!"}
+
     # Checking if type of product is chosen if needed.
-    if not backend.parser.check_choice_of_alternative(user_and_product.url):
-        return "Please choose type of the product!"
+    if not backend.parser_app.parser.check_choice_of_alternative(user_and_product.url):
+        return {"message": "Please choose type of the product!"}
 
     # Getting user from database by phone number.
     user = conn.get_user(user=user_and_product.phone_number)
 
     # Checking if user is authorised.
     if not user:
-        return "Please register yourself"
+        return {"message": "Please register yourself"}
 
     # Getting product id by url from database.
     product_id = conn.get_product_by_url(url=user_and_product.url)
@@ -66,21 +72,20 @@ async def subscribe_to_product(user_and_product: schemas.CreateSubscription,
 
         # Checking if user has already subscribed to product.
         if conn.check_user_subscription(user_id=user.id, product_id=product_id):
-            return "Success"
+            return {"message": "You've already subscribed to product."}
 
         conn.create_product_and_user(data=schemas.UsersAndProducts(product_id=product_id, user_id=user.id))
         logger.info(f"Subscribed {user} to {product_id}.")
-        return "Success"
+        return {"message": "You are successfully subscribed to product."}
 
     elif user and not product_id:
 
         logger.info(f"Parsing all the information about the {user_and_product.url}.")
-        product_info = get_info_about_product(user_and_product.url)
+        product_info = get_info_about_product.delay(url=user_and_product.url)
+        product_info = product_info.get()
 
         # Creating products schema with information.
-        product_info_in_schema = schemas.ProductsInfoCreate(
-                name=product_info[0], full_price=product_info[1],
-                price_with_card=product_info[2], price_on_sale=product_info[3])
+        product_info_in_schema = schemas.ProductsInfoCreate(**product_info)
 
         # Pushing product url to database.
         product = conn.create_product(product=user_and_product.url)
@@ -91,7 +96,7 @@ async def subscribe_to_product(user_and_product: schemas.CreateSubscription,
         # Pushing user subscription to product to database.
         conn.create_product_and_user(data=schemas.UsersAndProducts(product_id=product.id, user_id=user.id))
         logger.info(f"Added all the information about the {product}, {user} subscription to db.")
-        return product_info_in_schema
+        return {"message": "You are successfully subscribed to new product."}
 
 
 @router.post("/unsubscribe_product")

@@ -1,6 +1,6 @@
 import logging
 from . import models, schemas
-from .database import SessionLocal
+from .database_config import SessionLocal
 
 logger = logging.getLogger()
 
@@ -9,7 +9,7 @@ class CRUD:
 
     def __init__(self):
         db = SessionLocal()
-        self.db = db
+        self.db = SessionLocal()
 
     def create_product(self, product: str):
 
@@ -109,7 +109,8 @@ class CRUD:
         logger.info(f"Getting user subscriptions by phone {number}.")
         products = self.db.query(models.ProductsInfo).join(
             models.UserAndProductID).join(
-            models.User, models.User.phone_number == number).all()
+            models.User).filter(
+            models.User.phone_number == number).all()
         self.db.close()
         return products
 
@@ -117,7 +118,7 @@ class CRUD:
 
         logger.info(f"Getting user by {number}.")
         products = self.db.query(models.UserAndProductID).join(
-            models.User, models.User.phone_number == number).all()
+            models.User).filter(models.User.phone_number == number).all()
         self.db.close()
         return [product.product_id for product in products]
 
@@ -166,3 +167,15 @@ class CRUD:
 
         self.db.close()
         return result
+
+    def update_information_about_product(self, product, name):
+        # Creating product info model.
+
+        logger.info(f"Updating {product} in database.")
+        self.db.query(models.ProductsInfo).where(models.ProductsInfo.name == name).update(product)
+
+        # Committing database changes.
+        self.db.commit()
+
+        self.db.close()
+        return product

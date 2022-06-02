@@ -1,7 +1,7 @@
 import pytest
 from httpx import AsyncClient
 
-from endpoint import app
+from backend.parser_app.endpoint import app
 
 
 @pytest.mark.anyio

@@ -5,12 +5,12 @@ services:
     container_name: postgres
     image: postgres
     restart: always
+    env_file:
+      - .env
     volumes:
       - ./data/db:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    env_file:
-      - .env
 
   redis:
     image: redis
@@ -20,7 +20,7 @@ services:
 
   celery:
     build: .
-    command: celery -A backend.celery_tasks worker --loglevel=INFO
+    command: celery -A backend.parser_app.celery_tasks worker --loglevel=INFO -E
     env_file:
       - .env
     depends_on:
@@ -36,9 +36,10 @@ services:
 
   fast_api:
     build: .
-    command: uvicorn endpoint:app --host 0.0.0.0
+    command: uvicorn backend.parser_app.endpoint:app --host 0.0.0.0
     container_name: backend_app
-    env_file: .env
+    env_file:
+      - .env
     depends_on:
       - postgres
       - celery
