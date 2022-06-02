@@ -1,7 +1,19 @@
-celery[redis]
-fastapi[all]
+# app
+fastapi
 requests
 bs4
+uvicorn
+
+# task queue
+celery[redis]
 flower
+
+# db and ORM
 SQLAlchemy
 psycopg2-binary
+
+# tests
+pytest
+pytest-asyncio
+httpx
+trio

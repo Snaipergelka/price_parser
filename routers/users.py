@@ -19,7 +19,7 @@ async def create_user(user: schemas.UserCreate, conn: crud.CRUD = Depends(connec
 
 
 @router.delete("/delete_user")
-async def delete_user(user: schemas.UserAuth,
+async def delete_user(user_id: int,
                       conn: crud.CRUD = Depends(connecting_to_db)):
-    logger.info(f"Accepted {user} to delete.")
-    return conn.delete_user(user=user)
+    logger.info(f"Accepted {user_id} to delete.")
+    return conn.delete_user(user_id=user_id)

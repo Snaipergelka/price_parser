@@ -4,7 +4,8 @@ from backend.parser import (get_product_html,
                             get_price,
                             check_availability,
                             check_for_alternatives,
-                            get_prices_for_specified_good)
+                            get_prices_for_specified_good,
+                            get_prices_for_non_specified_good)
 
 app = Celery('get_information', broker='redis://localhost:6379', backend='redis://localhost:6379')
 
@@ -25,5 +26,5 @@ def get_info_about_product(url):
         return [name, full_price, price_with_card, price_on_sale]
 
     else:
-        full_price, price_with_card, price_on_sale = get_prices_for_specified_good(soup, url)
+        full_price, price_with_card, price_on_sale = get_prices_for_non_specified_good(soup)
         return [name, full_price, price_with_card, price_on_sale]

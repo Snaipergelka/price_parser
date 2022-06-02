@@ -44,3 +44,7 @@ class UserAuth(BaseModel):
 class UsersAndProducts(BaseModel):
     product_id: int
     user_id: int
+
+
+class CreateSubscription(UserAuth, ProductURLAndIDCreate):
+    pass
