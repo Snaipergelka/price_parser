@@ -1,15 +1,17 @@
 import re
+from idlelib.configdialog import is_int
 
 from bs4 import BeautifulSoup
 import requests
-from selenium import webdriver
 
 
 # This function takes as an input products URL, that user sends.
 # Than parses website to find and save "sale" price of the good.
 def get_product_html(website_url):
+    headers = {
+        'User-Agent': 'PostmanRuntime/7.28.4'}
     # scrape raw site
-    website = requests.get(website_url)
+    website = requests.get(website_url, headers=headers)
     # scrape site
     soup = BeautifulSoup(website.content, "html.parser")
     return soup
@@ -49,7 +51,7 @@ def find_name(soup):
 # NB for unique product without alternatives output will be 3
 def check_for_alternatives(soup):
     m_list = soup.find("ul", {"class": "b-card-option__items"})
-    return len(m_list)
+    return False if len(m_list) == 3 else True
 
 
 # This function scrapes item cuts part of code where is information about user's type of product
@@ -89,19 +91,34 @@ def get_specific_high_price(part_of_soup):
 # This function checks the basis of the discount (card or sale)
 def check_price(soup):
     # find if the price discount is provided by card or by current sale
-    check = soup.find("div",
-                      {"class": "b-card__price b-card__price--discount-card"})
-    return check is not None
+    return bool(soup.find("div",
+                          {"class": "b-card__price b-card__price--discount-card"}))
 
 
 # This function gets full price of the good without card
 def get_full_price(soup):
     # find and save HighPrice
     raw_full_price = soup.find(itemprop="highPrice")
-    full_price = int(raw_full_price['content'])
+    if raw_full_price:
+        full_price = int(raw_full_price['content'])
+        # return current high price of the good
+        return full_price
+    else:
+        return None
 
-    # return current high price of the good
-    return full_price
+
+def check_availability(soup):
+    return bool(soup.find("div",
+                          {"class": "b-card__not-available"}))
+
+
+def get_price(soup):
+    price = soup.find("div",
+                      {"class": "b-card__price-value"})
+    if price.get_text():
+        return int(price.get_text().replace('\n', '').replace('c', '').replace(' ', ''))
+    else:
+        return None
 
 
 # This function gets current price of the good with card
@@ -118,10 +135,13 @@ def get_price_with_card(soup):
 def get_low_price(soup):
     # find and save LowPrice
     raw_low_price = soup.find(itemprop="lowPrice" or "price")
-    low_price = int(raw_low_price['content'])
+    if raw_low_price:
+        low_price = int(raw_low_price['content'])
 
-    # return current low price of the good
-    return low_price
+        # return current low price of the good
+        return low_price
+    else:
+        return None
 
 
 # This function gets price without discount based on sale
@@ -146,4 +166,42 @@ def compare_prices(low_price, user_price):
     return low_price <= user_price
 
 
+def get_prices_for_specified_good(soup, url):
+    name = find_name(soup) + ' ' + str(url[-6:])
+    part_of_soup = cut_part_need(soup, url)
+    if check_availability(part_of_soup):
+        full_price = get_specific_low_price(part_of_soup)
+        price_with_card = full_price
+        price_on_sale = price_with_card
+        return [name, full_price, price_with_card, price_on_sale]
+    else:
+        full_price = get_specific_high_price(part_of_soup)
+        price_with_card = get_specific_low_price(part_of_soup)
+        price_on_sale = price_with_card
+        return [name, full_price, price_with_card, price_on_sale]
 
+
+def get_prices_for_non_specified_good(soup):
+    if check_price(soup):
+        full_price = get_full_price(soup)
+        price_with_card = get_price_with_card(soup)
+        price_on_sale = 0
+    else:
+        full_price = get_high_price(soup)
+        price_on_sale = get_low_price(soup)
+        price_with_card = 0
+    return full_price, price_with_card, price_on_sale
+
+
+def check_choice_of_alternative(url):
+    soup = get_product_html(url)
+    if check_for_alternatives(soup) and is_int(url[-6:]):
+        return True
+    if not check_for_alternatives(soup):
+        return True
+    return False
+
+
+if __name__ == "__main__":
+    print(check_choice_of_alternative(
+        'https://sephora.ru/make-up/lips/pomade/clarins-joli-rouge-gubnaya-prod1yvc/#store_346243'))
